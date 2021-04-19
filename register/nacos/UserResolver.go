@@ -1,6 +1,9 @@
 package nacos
 
-import "google.golang.org/grpc/resolver"
+import (
+	"fmt"
+	"google.golang.org/grpc/resolver"
+)
 
 type UserResolverBuilder struct {
 	BaseResolverBuilder
@@ -9,11 +12,11 @@ type UserResolverBuilder struct {
 
 
 
-const USER_SERVICE_NAME = "userProfile"
-const USER_CLUSTER_NAME = "aaaaa"
+const USER_SERVICE_NAME = "user"
+const USER_CLUSTER_NAME = "orcatalk"
 const USER_GROUP_NAEME = "user"
 // env = stage/prod
-func NewUserResolverBuilder(logDir string) error {
+func NewUserResolverBuilder(logDir string) (*UserResolverBuilder,error) {
 
 	userResolver := new(UserResolverBuilder)
 	userResolver.clusterName = USER_CLUSTER_NAME
@@ -24,7 +27,11 @@ func NewUserResolverBuilder(logDir string) error {
 	if err == nil {
 		resolver.Register(userResolver)
 	}
-	return err
+	return userResolver, err
 
+}
+
+func (resolver *UserResolverBuilder) GetTargetUrl()string {
+	return fmt.Sprintf("%s://%s/%s", USER_CLUSTER_NAME, USER_GROUP_NAEME, USER_SERVICE_NAME)
 }
 

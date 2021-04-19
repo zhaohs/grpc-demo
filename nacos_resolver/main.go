@@ -22,7 +22,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
 	"grpc-demo/register/nacos"
 	"strconv"
 	"time"
@@ -30,29 +29,20 @@ import (
 	"google.golang.org/grpc"
 	pb "grpc-demo/pb/helloworld"
 )
-var namingClient naming_client.INamingClient
-
 
 func main() {
 
-	err := nacos.NewUserResolverBuilder("/Users/yc/logs")
+	userResolver, err := nacos.NewUserResolverBuilder("/Users/yc/logs")
 	if err != nil {
 		fmt.Println(err)
 	}
 	roundrobinConn, err := grpc.Dial(
-		fmt.Sprintf("%s://%s/%s", nacos.USER_CLUSTER_NAME, nacos.USER_GROUP_NAEME, nacos.USER_SERVICE_NAME),
+		userResolver.GetTargetUrl(),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`), // This sets the initial balancing policy.
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 	)
 	fmt.Println(err)
-	/*
-		roundrobinConn, err := grpc.Dial(
-			"localhost:50051",
-			//grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`), // This sets the initial balancing policy.
-			grpc.WithInsecure(),
-			grpc.WithBlock(),
-		)*/
 	defer roundrobinConn.Close()
 	pbClient := pb.NewGreeterClient(roundrobinConn)
 	for i := 0; i < 50; i++ {
